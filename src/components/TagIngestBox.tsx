@@ -11,6 +11,7 @@ export default function TagIngestBox({ onSuccess, compact = false }: TagIngestBo
   const [loading, setLoading] = useState(false)
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
   const [isError, setIsError] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -52,12 +53,12 @@ export default function TagIngestBox({ onSuccess, compact = false }: TagIngestBo
             onChange={(e) => setTagInput(e.target.value)}
             placeholder="ex: docker, rust, c++"
             disabled={loading}
-            className="border-2 border-ink bg-input px-3 py-1.5 font-mono text-xs text-cream outline-none focus:border-yellow"
+            className="border-2 border-ink bg-cream px-3 py-1.5 font-mono text-xs text-ink placeholder:text-ink/40 outline-none focus:shadow-glowCyan"
           />
           <button
             type="submit"
             disabled={loading || !tagInput.trim()}
-            className="border-2 border-ink bg-cyan px-3 py-1.5 font-pixel text-[9px] text-ink transition-transform active:translate-y-0.5 disabled:opacity-50"
+            className="border-2 border-ink bg-cyan px-3 py-1.5 font-pixel text-[9px] text-ink shadow-pixelSm transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50"
           >
             {loading ? 'COLETANDO...' : '+ COLETAR 50 PERGUNTAS'}
           </button>
@@ -73,40 +74,60 @@ export default function TagIngestBox({ onSuccess, compact = false }: TagIngestBo
   }
 
   return (
-    <div className="mt-6 w-full border-2 border-ink/40 bg-panel2/60 p-4 text-left">
-      <div className="flex items-center justify-between">
-        <span className="font-pixel text-[9px] text-yellow">COLETA LIVRE POR TAGS</span>
-        <span className="font-mono text-[10px] text-cyan">50 perguntas / tag</span>
-      </div>
-
-      <p className="mt-1 font-mono text-xs text-cream/70">
-        Deseja indexar novas tecnologias? Digite qualquer tag do Stack Overflow (ex.: <span className="text-cyan">docker</span>, <span className="text-cyan">rust</span>, <span className="text-cyan">kubernetes</span>):
-      </p>
-
-      <form onSubmit={handleSubmit} className="mt-3 flex flex-col gap-2 sm:flex-row">
-        <input
-          type="text"
-          value={tagInput}
-          onChange={(e) => setTagInput(e.target.value)}
-          placeholder="ex: docker, rust, typescript"
-          disabled={loading}
-          className="flex-1 border-2 border-ink bg-input px-3 py-2 font-mono text-xs text-cream outline-none focus:border-yellow"
-        />
+    <div className="mt-6 w-full">
+      {!isOpen ? (
         <button
-          type="submit"
-          disabled={loading || !tagInput.trim()}
-          className="border-2 border-ink bg-cyan px-4 py-2 font-pixel text-[9px] text-ink transition-transform active:translate-y-0.5 disabled:opacity-50"
+          type="button"
+          onClick={() => setIsOpen(true)}
+          className="inline-flex items-center gap-2 border-2 border-ink bg-panel2 px-4 py-2 font-pixel text-[9px] text-cyan shadow-pixelSm transition-transform hover:bg-panel2/80 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
         >
-          {loading ? 'COLETANDO (50)...' : '+ COLETAR 50 PERGUNTAS'}
+          <span>+ COLETAR NOVAS TAGS DO STACK OVERFLOW</span>
         </button>
-      </form>
+      ) : (
+        <div className="border-4 border-ink bg-panel p-5 text-left shadow-pixel">
+          <div className="flex items-center justify-between border-b-2 border-ink/40 pb-2">
+            <span className="font-pixel text-[10px] text-yellow">COLETA LIVRE POR TAGS</span>
+            <div className="flex items-center gap-3">
+              <span className="font-mono text-[10px] text-cyan">50 perguntas / tag</span>
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="font-pixel text-[9px] text-pink hover:text-pink/80"
+              >
+                [FECHAR ✕]
+              </button>
+            </div>
+          </div>
 
-      {statusMessage && (
-        <p className={`mt-2 font-mono text-xs ${isError ? 'text-pink' : 'text-yellow'}`}>
-          {statusMessage}
-        </p>
+          <p className="mt-3 font-mono text-xs text-cream/70">
+            Deseja indexar novas tecnologias? Digite qualquer tag do Stack Overflow (ex.: <span className="text-cyan">docker</span>, <span className="text-cyan">rust</span>, <span className="text-cyan">kubernetes</span>):
+          </p>
+
+          <form onSubmit={handleSubmit} className="mt-3 flex flex-col gap-2 sm:flex-row">
+            <input
+              type="text"
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              placeholder="ex: docker, rust, typescript"
+              disabled={loading}
+              className="flex-1 border-2 border-ink bg-cream px-3 py-2 font-mono text-xs text-ink placeholder:text-ink/40 outline-none focus:shadow-glowCyan"
+            />
+            <button
+              type="submit"
+              disabled={loading || !tagInput.trim()}
+              className="border-2 border-ink bg-cyan px-4 py-2 font-pixel text-[9px] text-ink shadow-pixelSm transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50"
+            >
+              {loading ? 'COLETANDO (50)...' : '+ COLETAR 50 PERGUNTAS'}
+            </button>
+          </form>
+
+          {statusMessage && (
+            <p className={`mt-3 font-mono text-xs ${isError ? 'text-pink' : 'text-yellow'}`}>
+              {statusMessage}
+            </p>
+          )}
+        </div>
       )}
     </div>
   )
 }
-
