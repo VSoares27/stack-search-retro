@@ -108,7 +108,7 @@ export default function App() {
       <div className="crt-overlay" />
       {isSearching && (
         <div role="status" aria-live="polite" className="fixed inset-0 z-[60] flex flex-col items-center justify-center gap-5 bg-base/95 text-cyan">
-          <span className="animate-pulse font-pixel text-8xl">Ø</span>
+          <span className="animate-pulse font-pixel text-8xl text-yellow drop-shadow-[4px_4px_0_#1a1035]">Ø</span>
           <span className="font-pixel text-xs text-yellow">BUSCANDO...</span>
         </div>
       )}
