@@ -106,6 +106,12 @@ export default function App() {
   return (
     <div className="relative min-h-screen bg-base bg-grid text-cream">
       <div className="crt-overlay" />
+      {isSearching && (
+        <div role="status" aria-live="polite" className="fixed inset-0 z-[60] flex flex-col items-center justify-center gap-5 bg-base/95 text-cyan">
+          <span className="animate-pulse font-pixel text-8xl">Ø</span>
+          <span className="font-pixel text-xs text-yellow">BUSCANDO...</span>
+        </div>
+      )}
       <Header onLogoClick={handleLogoClick} />
 
       <main>
