@@ -12,6 +12,7 @@ export default function TagIngestBox({ onSuccess, compact = false }: TagIngestBo
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
   const [isError, setIsError] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -27,6 +28,7 @@ export default function TagIngestBox({ onSuccess, compact = false }: TagIngestBo
       const total = response.totalIngested
       setStatusMessage(`✓ Sucesso! ${total} perguntas indexadas. Total no corpus: ${response.totalCorpus}`)
       setTagInput('')
+      setShowSuccessPopup(true)
       if (onSuccess) {
         onSuccess(response.totalCorpus)
       }
@@ -75,6 +77,32 @@ export default function TagIngestBox({ onSuccess, compact = false }: TagIngestBo
 
   return (
     <div className="mt-6 w-full">
+      {showSuccessPopup && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-ink/80 p-4"
+          onClick={() => setShowSuccessPopup(false)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="tag-ingest-success-title"
+            className="w-full max-w-md border-4 border-ink bg-panel p-6 text-center shadow-pixel"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <p id="tag-ingest-success-title" className="font-pixel text-xs text-yellow">TAGS COLETADAS</p>
+            <p className="mt-4 font-mono text-sm text-cream">
+              {statusMessage}
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowSuccessPopup(false)}
+              className="mx-auto mt-5 block border-2 border-ink bg-cyan px-4 py-2 font-pixel text-[9px] text-ink shadow-pixelSm"
+            >
+              FECHAR
+            </button>
+          </div>
+        </div>
+      )}
       {!isOpen ? (
         <button
           type="button"

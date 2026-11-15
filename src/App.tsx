@@ -7,6 +7,7 @@ import DocumentView from './components/DocumentView'
 import { mockResults, totalIndexedDocuments } from './data/mockResults'
 import { searchApi, statsApi, ApiUnavailableError } from './lib/api'
 import type { RedditResult } from './types'
+import loadingIcon from './assets/loading-icon.svg'
 
 type View = 'home' | 'results' | 'document'
 function demoSearch(query: string): RedditResult[] {
@@ -60,6 +61,7 @@ export default function App() {
     const currentQuery = query.trim()
     setSearchError(null)
     setIsSearching(true)
+    const searchStartedAt = Date.now()
 
     try {
       const response = await searchApi(currentQuery)
@@ -85,6 +87,10 @@ export default function App() {
       setIsDemoMode(true)
       setView('results')
     } finally {
+      const remainingLoadingTime = 3000 - (Date.now() - searchStartedAt)
+      if (remainingLoadingTime > 0) {
+        await new Promise((resolve) => setTimeout(resolve, remainingLoadingTime))
+      }
       setIsSearching(false)
     }
   }
@@ -106,6 +112,12 @@ export default function App() {
   return (
     <div className="relative min-h-screen bg-base bg-grid text-cream">
       <div className="crt-overlay" />
+      {isSearching && (
+        <div role="status" aria-live="polite" className="fixed inset-0 z-[60] flex flex-col items-center justify-center gap-5 bg-base/95 text-cyan">
+          <img src={loadingIcon} alt="" aria-hidden="true" className="h-28 w-auto animate-pulse" />
+          <span className="font-pixel text-xs text-yellow">BUSCANDO...</span>
+        </div>
+      )}
       <Header onLogoClick={handleLogoClick} />
 
       <main>
