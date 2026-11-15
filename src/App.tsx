@@ -7,6 +7,7 @@ import DocumentView from './components/DocumentView'
 import { mockResults, totalIndexedDocuments } from './data/mockResults'
 import { searchApi, statsApi, ApiUnavailableError } from './lib/api'
 import type { RedditResult } from './types'
+import loadingIcon from './assets/loading-icon.svg'
 
 type View = 'home' | 'results' | 'document'
 function demoSearch(query: string): RedditResult[] {
@@ -113,7 +114,7 @@ export default function App() {
       <div className="crt-overlay" />
       {isSearching && (
         <div role="status" aria-live="polite" className="fixed inset-0 z-[60] flex flex-col items-center justify-center gap-5 bg-base/95 text-cyan">
-          <span className="animate-pulse font-pixel text-8xl text-yellow drop-shadow-[4px_4px_0_#1a1035]">Ø</span>
+          <img src={loadingIcon} alt="" aria-hidden="true" className="h-24 w-24 animate-pulse drop-shadow-[4px_4px_0_#1a1035]" />
           <span className="font-pixel text-xs text-yellow">BUSCANDO...</span>
         </div>
       )}
