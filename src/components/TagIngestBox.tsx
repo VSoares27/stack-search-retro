@@ -86,7 +86,7 @@ export default function TagIngestBox({ onSuccess, compact = false }: TagIngestBo
             role="dialog"
             aria-modal="true"
             aria-labelledby="tag-ingest-success-title"
-            className="w-full max-w-md border-4 border-ink bg-panel p-6 text-left shadow-pixel"
+            className="w-full max-w-md border-4 border-ink bg-panel p-6 text-center shadow-pixel"
             onClick={(event) => event.stopPropagation()}
           >
             <p id="tag-ingest-success-title" className="font-pixel text-xs text-yellow">TAGS COLETADAS</p>
@@ -96,7 +96,7 @@ export default function TagIngestBox({ onSuccess, compact = false }: TagIngestBo
             <button
               type="button"
               onClick={() => setShowSuccessPopup(false)}
-              className="mt-5 border-2 border-ink bg-cyan px-4 py-2 font-pixel text-[9px] text-ink shadow-pixelSm"
+              className="mx-auto mt-5 block border-2 border-ink bg-cyan px-4 py-2 font-pixel text-[9px] text-ink shadow-pixelSm"
             >
               FECHAR
             </button>
