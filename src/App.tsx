@@ -114,7 +114,7 @@ export default function App() {
       <div className="crt-overlay" />
       {isSearching && (
         <div role="status" aria-live="polite" className="fixed inset-0 z-[60] flex flex-col items-center justify-center gap-5 bg-base/95 text-cyan">
-          <img src={loadingIcon} alt="" aria-hidden="true" className="h-24 w-24 animate-pulse drop-shadow-[4px_4px_0_#1a1035]" />
+          <img src={loadingIcon} alt="" aria-hidden="true" className="h-24 w-auto animate-pulse" />
           <span className="font-pixel text-xs text-yellow">BUSCANDO...</span>
         </div>
       )}
