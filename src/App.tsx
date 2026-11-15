@@ -87,7 +87,7 @@ export default function App() {
       setIsDemoMode(true)
       setView('results')
     } finally {
-      const remainingLoadingTime = 5000 - (Date.now() - searchStartedAt)
+      const remainingLoadingTime = 3000 - (Date.now() - searchStartedAt)
       if (remainingLoadingTime > 0) {
         await new Promise((resolve) => setTimeout(resolve, remainingLoadingTime))
       }
@@ -114,7 +114,7 @@ export default function App() {
       <div className="crt-overlay" />
       {isSearching && (
         <div role="status" aria-live="polite" className="fixed inset-0 z-[60] flex flex-col items-center justify-center gap-5 bg-base/95 text-cyan">
-          <img src={loadingIcon} alt="" aria-hidden="true" className="h-24 w-auto animate-pulse" />
+          <img src={loadingIcon} alt="" aria-hidden="true" className="h-28 w-auto animate-pulse" />
           <span className="font-pixel text-xs text-yellow">BUSCANDO...</span>
         </div>
       )}
