@@ -1,4 +1,5 @@
 import logo from '../assets/retrova-logo.png'
+import loadingIcon from '../assets/loading-icon.svg'
 
 interface HeaderProps {
   onLogoClick?: () => void
@@ -13,6 +14,7 @@ export default function Header({ onLogoClick }: HeaderProps) {
           className="flex items-center gap-3 focus-visible:outline-yellow"
           aria-label="Voltar para a tela inicial"
         >
+          <img src={loadingIcon} alt="" aria-hidden="true" className="h-8 w-8" />
           <img src={logo} alt="RETRØVA" className="h-6 w-auto sm:h-7" />
         </button>
 
