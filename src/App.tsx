@@ -60,6 +60,7 @@ export default function App() {
     const currentQuery = query.trim()
     setSearchError(null)
     setIsSearching(true)
+    const searchStartedAt = Date.now()
 
     try {
       const response = await searchApi(currentQuery)
@@ -85,6 +86,10 @@ export default function App() {
       setIsDemoMode(true)
       setView('results')
     } finally {
+      const remainingLoadingTime = 5000 - (Date.now() - searchStartedAt)
+      if (remainingLoadingTime > 0) {
+        await new Promise((resolve) => setTimeout(resolve, remainingLoadingTime))
+      }
       setIsSearching(false)
     }
   }
