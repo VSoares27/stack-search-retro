@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { StackOverflowResult, SortOption } from '../types'
+import type { StackOverflowResult, SortOption, RetrievalModel } from '../types'
 import SearchBar from './SearchBar'
 import SearchButton from './SearchButton'
 import ResultsList from './ResultsList'
@@ -17,6 +17,8 @@ interface ResultsScreenProps {
   isDemoMode: boolean
   isSearching: boolean
   parsedQuery?: string
+  retrievalModel?: RetrievalModel
+  onModelChange?: (model: RetrievalModel) => void
   onViewDetails: (result: StackOverflowResult) => void
   onCorpusUpdated?: (newTotal: number) => void
 }
@@ -47,6 +49,8 @@ export default function ResultsScreen({
   isDemoMode,
   isSearching,
   parsedQuery,
+  retrievalModel = 'tfidf',
+  onModelChange,
   onViewDetails,
   onCorpusUpdated,
 }: ResultsScreenProps) {
@@ -82,6 +86,10 @@ export default function ResultsScreen({
           <>
             Exibindo resultados para{' '}
             <span className="font-bold text-yellow">"{submittedQuery}"</span>
+            {' '}via{' '}
+            <span className={retrievalModel === 'tfidf' ? 'text-yellow font-bold' : 'text-pink font-bold'}>
+              {retrievalModel === 'tfidf' ? 'TF-IDF (Espaço Vetorial)' : 'Modelo Booleano'}
+            </span>
           </>
         )}
       </p>
@@ -98,6 +106,8 @@ export default function ResultsScreen({
           lastQuery={submittedQuery}
           lastParsedQuery={parsedQuery}
           lastResultsFound={isSearching ? undefined : results.length}
+          retrievalModel={retrievalModel}
+          onModelChange={onModelChange}
         />
       </div>
 
@@ -111,6 +121,8 @@ export default function ResultsScreen({
           totalIndexed={totalIndexed}
           resultsFound={filteredResults.length}
           queryTimeMs={queryTimeMs}
+          retrievalModel={retrievalModel}
+          onModelChange={onModelChange}
           onCorpusUpdated={onCorpusUpdated}
         />
 

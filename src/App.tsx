@@ -6,11 +6,41 @@ import ResultsScreen from './components/ResultsScreen'
 import DocumentView from './components/DocumentView'
 import { mockResults, totalIndexedDocuments } from './data/mockResults'
 import { searchApi, statsApi, ApiUnavailableError } from './lib/api'
-import type { RedditResult } from './types'
+import type { StackOverflowResult, RetrievalModel } from './types'
 import loadingIcon from './assets/loading-icon.svg'
 
 type View = 'home' | 'results' | 'document'
-function demoSearch(query: string): RedditResult[] {
+
+function demoSearch(query: string, model: RetrievalModel = 'tfidf'): StackOverflowResult[] {
+  if (model === 'tfidf') {
+    const rawTokens = query.toLowerCase().split(/\s+/).filter(Boolean)
+    const positiveTokens = rawTokens.filter((t) => t !== 'and' && t !== 'or' && t !== 'not')
+    const hasNot = rawTokens.includes('not')
+    const notToken = hasNot ? rawTokens[rawTokens.indexOf('not') + 1] : null
+
+    return mockResults
+      .flatMap((result) => {
+        const text = `${result.title} ${result.excerpt}`.toLowerCase()
+        if (notToken && text.includes(notToken)) return []
+
+        const matched: string[] = []
+        let matchCount = 0
+        for (const token of positiveTokens) {
+          if (text.includes(token)) {
+            matched.push(token)
+            const occurrences = text.split(token).length - 1
+            matchCount += occurrences
+          }
+        }
+
+        if (matched.length === 0) return []
+        const relevance = Math.min(100, Math.round((matchCount / Math.max(1, positiveTokens.length)) * 50))
+        return [{ ...result, relevance: Math.max(relevance, result.relevance), matchedTerms: matched }]
+      })
+      .sort((a, b) => b.relevance - a.relevance)
+  }
+
+  // Modelo Booleano (fallback demo)
   const clauses: { operator: 'AND' | 'OR' | 'NOT'; term: string }[] = []
   let operator: 'AND' | 'OR' | 'NOT' = 'AND'
   for (const token of query.split(/\s+/)) {
@@ -22,6 +52,7 @@ function demoSearch(query: string): RedditResult[] {
       operator = 'AND'
     }
   }
+
   return mockResults.flatMap((result) => {
     const text = `${result.title} ${result.excerpt}`.toLowerCase()
     let included = false
@@ -44,32 +75,42 @@ export default function App() {
   const [submittedQuery, setSubmittedQuery] = useState('')
   const [searchError, setSearchError] = useState<string | null>(null)
   const [parsedQuery, setParsedQuery] = useState<string | undefined>(undefined)
-  const [results, setResults] = useState<RedditResult[]>([])
-  const [selectedResult, setSelectedResult] = useState<RedditResult | null>(null)
+  const [results, setResults] = useState<StackOverflowResult[]>([])
+  const [selectedResult, setSelectedResult] = useState<StackOverflowResult | null>(null)
   const [queryTimeMs, setQueryTimeMs] = useState(0)
   const [totalIndexed, setTotalIndexed] = useState(totalIndexedDocuments)
   const [isDemoMode, setIsDemoMode] = useState(false)
   const [isSearching, setIsSearching] = useState(false)
+  const [retrievalModel, setRetrievalModel] = useState<RetrievalModel>('tfidf')
+
   useEffect(() => {
     statsApi()
-      .then((stats) => setTotalIndexed(stats.corpusSize))
+      .then((stats) => {
+        setTotalIndexed(stats.corpusSize)
+        if (stats.retrievalModel) {
+          setRetrievalModel(stats.retrievalModel)
+        }
+      })
       .catch(() => setIsDemoMode(true))
   }, [])
 
-  const handleSearch = async () => {
-    if (query.trim().length === 0 || isSearching) return
-    const currentQuery = query.trim()
+  const executeSearch = async (searchQuery: string, modelToUse: RetrievalModel) => {
+    if (searchQuery.trim().length === 0 || isSearching) return
+    const currentQuery = searchQuery.trim()
     setSearchError(null)
     setIsSearching(true)
     const searchStartedAt = Date.now()
 
     try {
-      const response = await searchApi(currentQuery)
+      const response = await searchApi(currentQuery, modelToUse)
       setSubmittedQuery(currentQuery)
       setResults(response.results)
       setParsedQuery(response.parsedQuery)
       setQueryTimeMs(response.queryTimeMs)
       setTotalIndexed(response.totalIndexed)
+      if (response.model) {
+        setRetrievalModel(response.model)
+      }
       setIsDemoMode(false)
       setView('results')
     } catch (error) {
@@ -78,7 +119,7 @@ export default function App() {
         return
       }
       const start = performance.now()
-      const found = demoSearch(currentQuery)
+      const found = demoSearch(currentQuery, modelToUse)
       setSubmittedQuery(currentQuery)
       setResults(found)
       setParsedQuery(undefined)
@@ -95,9 +136,20 @@ export default function App() {
     }
   }
 
+  const handleSearch = () => {
+    executeSearch(query, retrievalModel)
+  }
+
+  const handleModelChange = (newModel: RetrievalModel) => {
+    setRetrievalModel(newModel)
+    if (submittedQuery) {
+      executeSearch(submittedQuery, newModel)
+    }
+  }
+
   const handleLogoClick = () => setView('home')
 
-  const handleViewDetails = (result: RedditResult) => {
+  const handleViewDetails = (result: StackOverflowResult) => {
     setSelectedResult(result)
     setView('document')
   }
@@ -121,7 +173,11 @@ export default function App() {
       <Header onLogoClick={handleLogoClick} />
 
       <main>
-        {searchError && <p role="alert" className="mx-auto mt-4 max-w-3xl border-2 border-pink bg-panel2 p-4 font-mono text-sm text-cream">{searchError}</p>}
+        {searchError && (
+          <p role="alert" className="mx-auto mt-4 max-w-3xl border-2 border-pink bg-panel2 p-4 font-mono text-sm text-cream">
+            {searchError}
+          </p>
+        )}
         {view === 'home' && (
           <HomeScreen
             query={query}
@@ -130,6 +186,8 @@ export default function App() {
             corpusSize={totalIndexed}
             isSearching={isSearching}
             isDemoMode={isDemoMode}
+            retrievalModel={retrievalModel}
+            onModelChange={setRetrievalModel}
             onCorpusUpdated={handleCorpusUpdated}
           />
         )}
@@ -146,6 +204,8 @@ export default function App() {
             isDemoMode={isDemoMode}
             isSearching={isSearching}
             parsedQuery={parsedQuery}
+            retrievalModel={retrievalModel}
+            onModelChange={handleModelChange}
             onViewDetails={handleViewDetails}
             onCorpusUpdated={handleCorpusUpdated}
           />

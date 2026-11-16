@@ -1,7 +1,7 @@
 # RETRØVA — Backend
 
 Node + Express + TypeScript. Implementa o pipeline real de Recuperação da
-Informação sobre um corpus de perguntas do Stack Overflow.
+Informação sobre um corpus de perguntas do Stack Overflow, com suporte aos modelos **TF-IDF (Vector Space Model)** e **Booleano**.
 
 ## Setup
 
@@ -10,51 +10,41 @@ cp .env.example .env
 npm install
 ```
 
-O Stack Overflow (via API do Stack Exchange v2.3) funciona de forma anônima para até 300 requisições/dia por IP. Se desejar limite de até 10.000 requisições/dia, você pode registrar uma aplicação em https://stackapps.com/apps/oauth/register e preencher a variável `STACKEXCHANGE_KEY` no `.env`.
+### Configurações no `.env`:
 
-## Popular o corpus
+```env
+# Modelo padrão de recuperação ('tfidf' ou 'boolean')
+RETRIEVAL_MODEL=tfidf
+
+# Chave opcional do Stack Exchange (aumenta limite para 10.000 requisições/dia)
+STACKEXCHANGE_KEY=
+STACKEXCHANGE_USER_AGENT=StackOverflow IR Project/1.0.0
+
+PORT=3001
+DB_PATH=./data/retrova.db
+```
+
+## Popular o corpus e construir o índice TF-IDF
 
 ### 1. Seed Offline (Instantâneo)
 ```bash
 npm run seed
 ```
-Popula o SQLite (`data/retrova.db`) com 23 perguntas clássicas e abrangentes do Stack Overflow (Python, JavaScript, React, SQL, Git, Docker, Algoritmos) e reconstrói o vocabulário e índice invertido.
+Popula o SQLite (`data/retrova.db`) com perguntas clássicas do Stack Overflow, computa frequências de termos ($TF$), frequência inversa nos documentos ($IDF$), pesos $TF \times IDF$ e a norma Euclidiana de cada documento.
 
-### 2. Ingestão Online (Coleta Real)
-Para coletar dados novos diretamente via API do Stack Exchange:
+### 2. Ingestão Online (Coleta Real com 50 perguntas por tag)
 ```bash
+# Coletar tags específicas
+npm run ingest -- docker rust kubernetes
+
+# Ou tags padrão
 npm run ingest
-```
-
-Isso coleta as tags configuradas em `src/scripts/ingest.ts` (ex.: `python`, `javascript`, `reactjs`, `sql`, `algorithms`), persiste no SQLite (`data/retrova.db`) e reconstrói o índice invertido do zero.
-
-Você também pode disparar uma ingestão pontual via API, com o servidor rodando:
-
-```bash
-curl -X POST http://localhost:3001/api/ingest \
-  -H "Content-Type: application/json" \
-  -d '{"tag": "python", "limit": 30}'
-```
-
-## Rodar o servidor
-
-```bash
-npm run dev
 ```
 
 ## Endpoints
 
-- `GET /api/search?q=python AND async NOT threading` — busca booleana real sobre o índice invertido
-- `GET /api/stats` — tamanho do corpus, vocabulário e termos mais frequentes
-- `GET /api/document/:id` — documento completo do corpus (para a tela Document View)
-- `POST /api/ingest` — coleta perguntas por tag e reconstrói o índice
-
-## Testar Coleta Real
-
-Execute dentro de `backend`:
-
-```bash
-npm run check:so -- python
-```
-
-O teste consulta a API pública do Stack Exchange para a tag informada e exibe até 3 perguntas coletadas com seus títulos e URLs.
+- `GET /api/search?q=python dictionary&method=tfidf` — busca vetorial ranqueada por TF-IDF e Similaridade de Cosseno (padrão)
+- `GET /api/search?q=python AND dictionary NOT java&method=boolean` — busca booleana por álgebra de conjuntos
+- `GET /api/stats` — tamanho do corpus, vocabulário com DF/IDF e modelo ativo
+- `GET /api/document/:id` — documento completo do corpus
+- `POST /api/ingest` — coleta perguntas por tag (`{"tag": "rust", "limit": 50}`) e reconstrói o índice

@@ -1,3 +1,5 @@
+export type RetrievalModel = 'tfidf' | 'boolean'
+
 export interface StackOverflowResult {
   id: string
   title: string
@@ -7,6 +9,7 @@ export interface StackOverflowResult {
   comments: number // número de respostas/comentários
   score: number
   relevance: number
+  similarityScore?: number
   url: string
   matchedTerms: string[]
 }
@@ -18,6 +21,7 @@ export interface SearchStats {
   totalIndexed: number
   queryTimeMs: number
   resultsFound: number
+  retrievalModel?: RetrievalModel
 }
 
 export type SortOption = 'relevance' | 'date' | 'score' | 'comments'
@@ -38,6 +42,7 @@ export interface FullDocument {
 export interface SearchApiResponse {
   query: string
   parsedQuery: string
+  model?: RetrievalModel
   resultsFound: number
   queryTimeMs: number
   totalIndexed: number

@@ -1,13 +1,18 @@
-import type { SearchApiResponse, FullDocument } from '../types'
+import type { SearchApiResponse, FullDocument, RetrievalModel } from '../types'
 
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3001'
 
 export class ApiUnavailableError extends Error {}
 
-export async function searchApi(query: string): Promise<SearchApiResponse> {
+export async function searchApi(query: string, method?: RetrievalModel): Promise<SearchApiResponse> {
   let response: Response
+  const params = new URLSearchParams({ q: query })
+  if (method) {
+    params.set('method', method)
+  }
+
   try {
-    response = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(query)}`, { signal: AbortSignal.timeout(10000) })
+    response = await fetch(`${API_BASE}/api/search?${params.toString()}`, { signal: AbortSignal.timeout(10000) })
   } catch {
     throw new ApiUnavailableError('Backend do RETRØVA não respondeu.')
   }
@@ -23,7 +28,8 @@ export async function searchApi(query: string): Promise<SearchApiResponse> {
 export interface StatsApiResponse {
   corpusSize: number
   vocabularySize: number
-  topTerms: { term: string; documentFreq: number }[]
+  topTerms: { term: string; documentFreq: number; idf?: number }[]
+  retrievalModel?: RetrievalModel
 }
 
 export async function statsApi(): Promise<StatsApiResponse> {

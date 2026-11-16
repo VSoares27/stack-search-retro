@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { env } from '../config/env.js'
 import { fetchStackOverflowQuestions } from '../stackoverflow/stackoverflowClient.js'
 import { ingestQuestions, corpusSize } from '../corpus/corpusManager.js'
 import { buildInvertedIndex, vocabularySize, topVocabulary } from '../index/invertedIndex.js'
@@ -68,5 +69,6 @@ ingestionRouter.get('/stats', (_req, res) => {
     corpusSize: corpusSize(),
     vocabularySize: vocabularySize(),
     topTerms: topVocabulary(10),
+    retrievalModel: env.retrievalModel,
   })
 })

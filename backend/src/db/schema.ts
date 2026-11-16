@@ -19,23 +19,49 @@ db.exec(`
     answer_count  INTEGER NOT NULL DEFAULT 0,
     link          TEXT NOT NULL,
     lang          TEXT NOT NULL DEFAULT 'en',
+    doc_norm      REAL NOT NULL DEFAULT 1.0,
     processed_at  TEXT
   );
 
   CREATE TABLE IF NOT EXISTS terms (
     term           TEXT PRIMARY KEY,
-    document_freq  INTEGER NOT NULL DEFAULT 0
+    document_freq  INTEGER NOT NULL DEFAULT 0,
+    idf            REAL NOT NULL DEFAULT 0
   );
 
   CREATE TABLE IF NOT EXISTS postings (
-    term    TEXT NOT NULL REFERENCES terms(term) ON DELETE CASCADE,
-    doc_id  INTEGER NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+    term       TEXT NOT NULL REFERENCES terms(term) ON DELETE CASCADE,
+    doc_id     INTEGER NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+    term_freq  INTEGER NOT NULL DEFAULT 1,
+    tfidf      REAL NOT NULL DEFAULT 0,
     PRIMARY KEY (term, doc_id)
   );
 
   CREATE INDEX IF NOT EXISTS idx_postings_term ON postings(term);
   CREATE INDEX IF NOT EXISTS idx_documents_tag ON documents(tag);
 `)
+
+// Migrações seguras para tabelas existentes
+try {
+  db.exec(`ALTER TABLE documents ADD COLUMN doc_norm REAL NOT NULL DEFAULT 1.0;`)
+} catch {
+  // Coluna já existe
+}
+try {
+  db.exec(`ALTER TABLE terms ADD COLUMN idf REAL NOT NULL DEFAULT 0;`)
+} catch {
+  // Coluna já existe
+}
+try {
+  db.exec(`ALTER TABLE postings ADD COLUMN term_freq INTEGER NOT NULL DEFAULT 1;`)
+} catch {
+  // Coluna já existe
+}
+try {
+  db.exec(`ALTER TABLE postings ADD COLUMN tfidf REAL NOT NULL DEFAULT 0;`)
+} catch {
+  // Coluna já existe
+}
 
 const statementCache = new Map<string, Database.Statement>()
 export function getCachedStatement(sql: string): Database.Statement {

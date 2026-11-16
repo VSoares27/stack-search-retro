@@ -3,8 +3,8 @@ import { detectLang } from '../processing/detectLang.js'
 import type { StackOverflowQuestionRaw, StoredDocument } from '../types.js'
 
 const INSERT_SQL = `
-  INSERT INTO documents (question_id, title, body, tag, created_utc, score, answer_count, link, lang)
-  VALUES (@questionId, @title, @body, @tag, @createdUtc, @score, @answerCount, @link, @lang)
+  INSERT INTO documents (question_id, title, body, tag, created_utc, score, answer_count, link, lang, doc_norm)
+  VALUES (@questionId, @title, @body, @tag, @createdUtc, @score, @answerCount, @link, @lang, 1.0)
   ON CONFLICT(question_id) DO UPDATE SET
     title = excluded.title,
     body = excluded.body,
@@ -19,16 +19,17 @@ const INSERT_SQL = `
 
 const SELECT_ALL_SQL = `
   SELECT id, question_id as questionId, title, body, tag, created_utc as createdUtc,
-         score, answer_count as answerCount, link, lang
+         score, answer_count as answerCount, link, lang, doc_norm as docNorm
   FROM documents
 `
 
 const SELECT_BY_ID_SQL = `
   SELECT id, question_id as questionId, title, body, tag, created_utc as createdUtc,
-         score, answer_count as answerCount, link, lang
+         score, answer_count as answerCount, link, lang, doc_norm as docNorm
   FROM documents WHERE id = ?
 `
 
+const UPDATE_DOC_NORM_SQL = `UPDATE documents SET doc_norm = ? WHERE id = ?`
 const MARK_PROCESSED_SQL = `UPDATE documents SET processed_at = datetime('now') WHERE id = ?`
 const COUNT_DOCS_SQL = `SELECT COUNT(*) as count FROM documents`
 const SELECT_IDS_SQL = `SELECT id FROM documents`
@@ -51,6 +52,10 @@ export function getAllDocuments(): StoredDocument[] {
 
 export function getDocumentById(id: number): StoredDocument | undefined {
   return getCachedStatement(SELECT_BY_ID_SQL).get(id) as StoredDocument | undefined
+}
+
+export function updateDocNorm(docId: number, norm: number): void {
+  getCachedStatement(UPDATE_DOC_NORM_SQL).run(norm, docId)
 }
 
 export function markProcessed(docId: number): void {

@@ -60,7 +60,7 @@ export default function ResultCard({ result, index, onViewDetails }: ResultCardP
 
         <div>
           <div className="mb-1 flex justify-between font-mono text-[11px] text-ink/60">
-            <span>relevância</span>
+            <span>relevância {result.similarityScore !== undefined ? `(cosseno: ${result.similarityScore})` : ''}</span>
             <span>{result.relevance}/100</span>
           </div>
           <div className="h-3 w-full border-2 border-ink bg-white/60">
